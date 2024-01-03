@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 
 
 @Controller
@@ -23,12 +25,18 @@ public class UsersController {
     }
 
 @PostMapping("/register")
-public String registerUser(@ModelAttribute User user) {
+public String registerUser(@ModelAttribute @Validated User userDTO, BindingResult bindingResult) {
+    if (bindingResult.hasErrors()) {
+        // If there are validation errors, return to the registration page
+        return "users/signup";
+    }
+
     try {
         // Process the user data
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setEmail(user.getEmail().toLowerCase());
-        user.setUsername(user.getUsername());
+        User user = new User();
+        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        user.setEmail(userDTO.getEmail().toLowerCase());
+        user.setUsername(userDTO.getUsername());
         
         // Save user to the database
         userRepository.save(user);
